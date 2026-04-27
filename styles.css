@@ -646,6 +646,11 @@ input[type="checkbox"] {
   border-color: rgba(169, 139, 255, 0.24);
 }
 
+.matrix-insight-card {
+  border-color: rgba(255, 196, 93, 0.24);
+  background: linear-gradient(180deg, rgba(255, 196, 93, 0.08), rgba(255, 255, 255, 0.04));
+}
+
 .layer-actions {
   display: grid;
   grid-template-columns: 1fr;

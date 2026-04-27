@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Math Visual Engine is an interactive browser lab for linear algebra, calculus, probability, and statistical geometry.">
   <title>Math Visual Engine</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -23,8 +24,8 @@
 
       <nav class="mode-tabs" aria-label="Visualization mode">
         <button class="active" data-mode="transform" type="button">Transform</button>
-        <button data-mode="svd" type="button">SVD</button>
-        <button data-mode="eigen" type="button">Eigendecomposition</button>
+        <button data-mode="svd" type="button">Matrix Analysis</button>
+        <button data-mode="eigen" type="button">Eigenvalues</button>
         <button data-mode="distribution" type="button">Probability</button>
         <button data-mode="calculus" type="button">Calculus</button>
       </nav>
@@ -407,7 +408,16 @@
 
       <section class="panel-section decomposition-section matrix-only">
         <div class="section-heading">
-          <h2>Decomposition</h2>
+          <h2>Matrix Analysis</h2>
+        </div>
+        <div class="learning-card matrix-insight-card">
+          <div class="section-heading compact-heading">
+            <h2>Determinant & Eigenvalues</h2>
+            <strong id="invertibilitySummary">invertible</strong>
+          </div>
+          <p class="formula-line" id="detFormula">det(A) = ad - bc = 1</p>
+          <p class="formula-line" id="eigenFormula">lambda = 1, 1</p>
+          <p id="matrixInsight">The determinant is the signed area scale factor of the transformation.</p>
         </div>
         <div class="decomp-card" id="decompSummary">
           <span>Mode</span>

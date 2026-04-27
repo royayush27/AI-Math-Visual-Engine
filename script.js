@@ -2890,6 +2890,7 @@ function updateReadouts(matrix) {
   document.querySelector("#sigmaMatrix").textContent = formatMatrix(svd.sigma);
   document.querySelector("#vtMatrix").textContent = formatMatrix(svd.vt);
   document.querySelector("#pdpMatrix").textContent = eigendecomp.diagonalizable ? `${formatMatrix(eigendecomp.p)} D ${formatMatrix(eigendecomp.pinv)}` : "not real diagonalizable";
+  updateMatrixInsight(matrix, det, tr, rank, eigen, svd);
   updateDecompositionSummary(svd, eigendecomp);
 }
 
@@ -2933,17 +2934,35 @@ function updateDecompositionSummary(svd, eigendecomp) {
       body: "Directly compare source geometry with A applied to every point.",
     },
     svd: {
-      title: "SVD: U Sigma V^T",
-      body: `Right singular axes rotate into stretch factors ${format(svd.values[0])} and ${format(svd.values[1])}, then U orients the result.`,
+      title: "Matrix Analysis: SVD",
+      body: `Singular values ${format(svd.values[0])} and ${format(svd.values[1])} show the strongest and weakest stretch directions.`,
     },
     eigen: {
-      title: "Eigendecomposition",
+      title: "Eigenvalue Geometry",
       body: eigendecomp.status,
     },
   };
   const copy = modeCopy[state.activeMode];
   summary.querySelector("strong").textContent = copy.title;
   summary.querySelector("p").textContent = copy.body;
+}
+
+function updateMatrixInsight(matrix, det, tr, rank, eigen, svd) {
+  const detFormula = document.querySelector("#detFormula");
+  if (!detFormula) return;
+  const [a, b, c, d] = matrix;
+  const disc = tr * tr - 4 * det;
+  const invertible = Math.abs(det) > 1e-8;
+  const orientation = det < -1e-8 ? "reverses orientation" : det > 1e-8 ? "preserves orientation" : "collapses area";
+  const conditioning = svd.values[1] > 1e-8 ? svd.values[0] / svd.values[1] : Infinity;
+  document.querySelector("#invertibilitySummary").textContent = invertible ? "invertible" : "singular";
+  detFormula.textContent = `det(A) = (${format(a, 2)})(${format(d, 2)}) - (${format(b, 2)})(${format(c, 2)}) = ${format(det, 4)}`;
+  document.querySelector("#eigenFormula").textContent = disc < -1e-9
+    ? `eigenvalues: ${eigen.valuesText}`
+    : `eigenvalues: ${eigen.valuesText}; trace ${format(tr, 3)}, rank ${rank}`;
+  document.querySelector("#matrixInsight").textContent = invertible
+    ? `A ${orientation}. Area scales by |det(A)| = ${format(Math.abs(det), 3)}; conditioning is ${Number.isFinite(conditioning) ? format(conditioning, 2) : "infinite"}.`
+    : "A is singular, so at least one dimension collapses and the inverse does not exist.";
 }
 
 function update() {
@@ -3024,8 +3043,8 @@ function updateModeUi() {
   const nonMatrixMode = probabilityMode || calculusMode;
   const panelTitles = {
     transform: "Linear Algebra Lab",
-    svd: "SVD Decomposition Lab",
-    eigen: "Eigen Geometry Lab",
+    svd: "Matrix Analysis Lab",
+    eigen: "Eigenvalue Lab",
     distribution: "Probability & Statistics Lab",
     calculus: "Calculus Lab",
   };
