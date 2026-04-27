@@ -87,4 +87,4 @@ The symbolic math system is intentionally practical rather than exhaustive. When
 
 ## License
 
-Ayush Roy
+royayush27
