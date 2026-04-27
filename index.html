@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Math Visual Engine</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="viewport">
+      <header class="topbar">
+        <div>
+          <h1>Math Visual Engine</h1>
+          <p id="classification">Interactive linear algebra, calculus, probability, and statistical geometry</p>
+        </div>
+        <div class="top-actions" aria-label="Transformation actions">
+          <button class="icon-button" id="playPause" type="button" title="Play animation" aria-label="Play animation">▶</button>
+          <button class="icon-button" id="resetView" type="button" title="Reset view" aria-label="Reset view">⌂</button>
+          <button class="icon-button" id="exportPng" type="button" title="Export PNG" aria-label="Export PNG">⇩</button>
+        </div>
+      </header>
+
+      <nav class="mode-tabs" aria-label="Visualization mode">
+        <button class="active" data-mode="transform" type="button">Transform</button>
+        <button data-mode="svd" type="button">SVD</button>
+        <button data-mode="eigen" type="button">Eigendecomposition</button>
+        <button data-mode="distribution" type="button">Probability</button>
+        <button data-mode="calculus" type="button">Calculus</button>
+      </nav>
+
+      <div class="stage-wrap">
+        <canvas id="scene" aria-label="Linear transformation canvas"></canvas>
+        <div class="legend" aria-label="Canvas legend">
+          <span class="matrix-legend"><i class="swatch original"></i>Original</span>
+          <span class="matrix-legend"><i class="swatch transformed"></i>Transformed</span>
+          <span class="matrix-legend"><i class="swatch basis-i"></i>&icirc;</span>
+          <span class="matrix-legend"><i class="swatch basis-j"></i>&jcirc;</span>
+          <span class="matrix-legend"><i class="swatch accent"></i>Decomposition</span>
+          <span class="probability-legend is-hidden"><i class="swatch density"></i>Active</span>
+          <span class="probability-legend is-hidden"><i class="swatch cdf"></i>Combined</span>
+          <span class="probability-legend is-hidden"><i class="swatch transformed"></i>Interval</span>
+          <span class="calculus-legend is-hidden"><i class="swatch density"></i>f(x)</span>
+          <span class="calculus-legend is-hidden"><i class="swatch cdf"></i>tangent</span>
+          <span class="calculus-legend is-hidden"><i class="swatch transformed"></i>area</span>
+        </div>
+      </div>
+
+      <section class="readouts" aria-label="Dynamic mathematical readouts" aria-live="polite">
+        <article>
+          <span id="readoutLabel1">det(A)</span>
+          <strong id="detValue">1.000</strong>
+        </article>
+        <article>
+          <span id="readoutLabel2">trace(A)</span>
+          <strong id="traceValue">2.000</strong>
+        </article>
+        <article>
+          <span id="readoutLabel3">rank</span>
+          <strong id="rankValue">2</strong>
+        </article>
+        <article>
+          <span id="readoutLabel4">orientation</span>
+          <strong id="orientationValue">preserved</strong>
+        </article>
+        <article>
+          <span id="readoutLabel5">eigenvalues</span>
+          <strong id="eigenValue">1.000, 1.000</strong>
+        </article>
+        <article>
+          <span id="readoutLabel6">singular values</span>
+          <strong id="singularValue">1.000, 1.000</strong>
+        </article>
+      </section>
+    </section>
+
+    <aside class="control-panel" aria-label="Math Visual Engine controls">
+      <div class="panel-header">
+        <span>Workspace</span>
+        <strong id="controlModeTitle">Linear Algebra Lab</strong>
+      </div>
+      <section class="panel-section matrix-section matrix-only">
+        <div class="section-heading">
+          <h2>Matrix</h2>
+          <button id="identity" type="button">Identity</button>
+        </div>
+        <div class="segmented-control matrix-dimension-control" aria-label="Matrix dimension">
+          <button class="active" data-dimension="2" type="button">2D</button>
+          <button data-dimension="3" type="button">3D</button>
+        </div>
+        <div class="matrix-inputs" aria-label="2 by 2 matrix">
+          <label>
+            <span>a</span>
+            <input id="m00" type="number" step="0.05" value="1">
+          </label>
+          <label>
+            <span>b</span>
+            <input id="m01" type="number" step="0.05" value="0">
+          </label>
+          <label>
+            <span>c</span>
+            <input id="m10" type="number" step="0.05" value="0">
+          </label>
+          <label>
+            <span>d</span>
+            <input id="m11" type="number" step="0.05" value="1">
+          </label>
+        </div>
+
+        <div class="slider-stack">
+          <label>
+            <span>a</span>
+            <input data-cell="m00" type="range" min="-3" max="3" step="0.01" value="1">
+          </label>
+          <label>
+            <span>b</span>
+            <input data-cell="m01" type="range" min="-3" max="3" step="0.01" value="0">
+          </label>
+          <label>
+            <span>c</span>
+            <input data-cell="m10" type="range" min="-3" max="3" step="0.01" value="0">
+          </label>
+          <label>
+            <span>d</span>
+            <input data-cell="m11" type="range" min="-3" max="3" step="0.01" value="1">
+          </label>
+        </div>
+        <div class="matrix3-inputs is-hidden" aria-label="3 by 3 matrix">
+          <label><span>a11</span><input id="m300" type="number" step="0.05" value="1"></label>
+          <label><span>a12</span><input id="m301" type="number" step="0.05" value="0"></label>
+          <label><span>a13</span><input id="m302" type="number" step="0.05" value="0"></label>
+          <label><span>a21</span><input id="m310" type="number" step="0.05" value="0"></label>
+          <label><span>a22</span><input id="m311" type="number" step="0.05" value="1"></label>
+          <label><span>a23</span><input id="m312" type="number" step="0.05" value="0"></label>
+          <label><span>a31</span><input id="m320" type="number" step="0.05" value="0"></label>
+          <label><span>a32</span><input id="m321" type="number" step="0.05" value="0"></label>
+          <label><span>a33</span><input id="m322" type="number" step="0.05" value="1"></label>
+        </div>
+      </section>
+
+      <section class="panel-section matrix-only">
+        <div class="section-heading">
+          <h2>Presets</h2>
+        </div>
+        <div class="preset-grid">
+          <button data-preset="rotation" type="button">Rotate 30°</button>
+          <button data-preset="reflection" type="button">Reflect X</button>
+          <button data-preset="shear" type="button">Shear</button>
+          <button data-preset="scale" type="button">Scale</button>
+          <button data-preset="projection" type="button">Project</button>
+          <button data-preset="singular" type="button">Collapse</button>
+          <button data-preset="spiral" type="button">Spiral</button>
+          <button data-preset="swap" type="button">Swap Axes</button>
+          <button data-preset3="rotateZ" type="button">3D Rotate Z</button>
+          <button data-preset3="tilt" type="button">3D Tilt</button>
+          <button data-preset3="scale3" type="button">3D Scale</button>
+          <button data-preset3="shear3" type="button">3D Shear</button>
+        </div>
+      </section>
+
+      <section class="panel-section matrix-only">
+        <div class="section-heading">
+          <h2>Display</h2>
+        </div>
+        <div class="toggle-grid">
+          <label><input id="showGrid" type="checkbox" checked> Grid</label>
+          <label><input id="showUnitSquare" type="checkbox" checked> Unit square</label>
+          <label><input id="showCircle" type="checkbox" checked> Unit circle</label>
+          <label><input id="showBasis" type="checkbox" checked> Basis vectors</label>
+          <label><input id="showEigen" type="checkbox"> Eigen lines</label>
+          <label><input id="showPoints" type="checkbox"> Sample points</label>
+        </div>
+      </section>
+
+      <section class="panel-section probability-section is-hidden">
+        <div class="section-heading">
+          <h2>Probability</h2>
+        </div>
+        <label class="select-row">
+          <span>Distribution</span>
+          <select id="distributionSelect">
+            <option value="normal">Normal</option>
+            <option value="bernoulli">Bernoulli</option>
+            <option value="binomial">Binomial</option>
+            <option value="beta">Beta</option>
+            <option value="gamma">Gamma</option>
+            <option value="chisquared">Chi-Squared</option>
+            <option value="f">F-distribution</option>
+            <option value="studentt">Student's T</option>
+            <option value="exponential">Exponential</option>
+            <option value="hypergeometric">Hypergeometric</option>
+            <option value="geometric">Geometric</option>
+            <option value="cauchy">Cauchy</option>
+            <option value="poisson">Poisson</option>
+            <option value="uniform">Uniform</option>
+            <option value="lognormal">Lognormal</option>
+            <option value="weibull">Weibull</option>
+            <option value="pareto">Pareto</option>
+            <option value="laplace">Laplace</option>
+            <option value="logistic">Logistic</option>
+            <option value="rayleigh">Rayleigh</option>
+          </select>
+        </label>
+        <div class="segmented-control" aria-label="Distribution plot mode">
+          <button class="active" data-plot="density" type="button">PDF / PMF</button>
+          <button data-plot="cdf" type="button">CDF</button>
+        </div>
+        <div class="distribution-params" id="distributionParams"></div>
+        <div class="probe-inputs domain-inputs">
+          <label>
+            <span>min</span>
+            <input id="distMin" type="number" step="0.1" value="-5">
+          </label>
+          <label>
+            <span>max</span>
+            <input id="distMax" type="number" step="0.1" value="5">
+          </label>
+        </div>
+        <div class="learning-card">
+          <div class="section-heading compact-heading">
+            <h2>Interval Probe</h2>
+            <strong id="intervalProbability">0.683</strong>
+          </div>
+          <div class="probe-inputs">
+            <label>
+              <span>from</span>
+              <input id="intervalA" type="number" step="0.1" value="-1">
+            </label>
+            <label>
+              <span>to</span>
+              <input id="intervalB" type="number" step="0.1" value="1">
+            </label>
+          </div>
+          <p id="hoverReadout">Move over the plot to inspect x and probability height.</p>
+        </div>
+        <div class="learning-card">
+          <div class="section-heading compact-heading">
+            <h2>Combine Variables</h2>
+            <button id="addDistributionLayer" type="button">Save Y</button>
+          </div>
+          <label class="select-row">
+            <span>Relationship mode</span>
+            <select id="combineMode">
+              <option value="overlay">Single distribution / overlay</option>
+              <option value="mixture">Mixture</option>
+              <option value="densitySum">Curve-height sum</option>
+              <option value="variableSum">Sum / convolution</option>
+              <option value="variableProduct">Product transform</option>
+              <option value="variableRatio">Ratio transform</option>
+              <option value="standardization">Standardization</option>
+              <option value="fRatio">Derived family: Chi-square ratio to F</option>
+            </select>
+          </label>
+          <div class="layer-actions">
+            <button id="clearDistributionLayers" type="button">Clear Layers</button>
+          </div>
+          <div class="layer-list" id="distributionLayers"></div>
+        </div>
+        <p class="probe-result" id="distributionSummary">Normal distribution</p>
+        <div class="learning-card">
+          <div class="section-heading compact-heading">
+            <h2>Result</h2>
+            <strong id="combinedName">Active distribution</strong>
+          </div>
+          <p id="combinedFormula">f_X(x)</p>
+          <p id="combinedFormulaDetail">Choose an operation and save a Y distribution to derive a new distribution.</p>
+        </div>
+        <div class="learning-card derived-family-card">
+          <div class="section-heading compact-heading">
+            <h2>Chi-Squared to F</h2>
+            <strong id="fFamilyName">F(5, 12)</strong>
+          </div>
+          <div class="probe-inputs">
+            <label><span>df1</span><input id="fDf1" type="number" min="1" max="100" step="1" value="5"></label>
+            <label><span>df2</span><input id="fDf2" type="number" min="1" max="100" step="1" value="12"></label>
+          </div>
+          <p class="formula-line" id="fFamilyFormula">(X / d1) / (Y / d2) ~ F(d1, d2)</p>
+          <p id="fFamilyDetail">Choose the derived-family relationship mode to compare both chi-squared inputs with the resulting F curve.</p>
+        </div>
+      </section>
+
+      <section class="panel-section calculus-section is-hidden">
+        <div class="section-heading">
+          <h2>Calculus</h2>
+          <div class="heading-actions">
+            <button id="resetCalculusView" type="button">Reset View</button>
+            <button id="applyFunctionPreset" type="button">Use Preset</button>
+          </div>
+        </div>
+        <div class="segmented-control calculus-mode-control" aria-label="Calculus mode">
+          <button class="active" data-calculus-mode="oneD" type="button">1D</button>
+          <button data-calculus-mode="surface" type="button">2D Surface</button>
+          <button data-calculus-mode="gradient" type="button">Tangent Plane</button>
+        </div>
+        <label class="select-row">
+          <span>Preset</span>
+          <select id="functionPreset">
+            <option value="x^2">x^2</option>
+            <option value="sin(x)">sin(x)</option>
+            <option value="cos(x)">cos(x)</option>
+            <option value="exp(x/3)">exp(x/3)</option>
+            <option value="ln(x+4)">ln(x + 4)</option>
+            <option value="1/(1+x^2)">1 / (1 + x^2)</option>
+            <option value="sigmoid">sigmoid</option>
+            <option value="tanh">tanh</option>
+            <option value="relu">relu</option>
+            <option value="softplus">softplus</option>
+            <option value="gaussian">gaussian</option>
+            <option value="x^2+y^2">x^2 + y^2</option>
+            <option value="sin(x)*cos(y)">sin(x) * cos(y)</option>
+            <option value="exp(-(x^2+y^2))">exp(-(x^2 + y^2))</option>
+          </select>
+        </label>
+        <label class="select-row">
+          <span>Function</span>
+          <input id="functionInput" type="text" value="x^2">
+        </label>
+        <div class="chip-row" aria-label="Function examples">
+          <button data-function-chip="sigmoid" type="button">sigmoid</button>
+          <button data-function-chip="gaussian" type="button">gaussian</button>
+          <button data-function-chip="relu" type="button">relu</button>
+          <button data-function-chip="sin(x)*cos(y)" type="button">sin(x)cos(y)</button>
+        </div>
+        <div class="probe-inputs domain-inputs">
+          <label><span>min</span><input id="calcMin" type="number" step="0.5" value="-5"></label>
+          <label><span>max</span><input id="calcMax" type="number" step="0.5" value="5"></label>
+        </div>
+        <div class="probe-inputs surface-probe-inputs">
+          <label><span>x0</span><input id="surfaceX" type="number" step="0.1" value="1"></label>
+          <label><span>y0</span><input id="surfaceY" type="number" step="0.1" value="1"></label>
+        </div>
+        <div class="learning-card calculus-flow-card">
+          <div class="section-heading compact-heading">
+            <h2>View & Flow</h2>
+            <strong id="flowReadout">flow on</strong>
+          </div>
+          <div class="surface-view-controls">
+            <label class="wide-slider">
+              <span>yaw</span>
+              <input id="surfaceYaw" type="range" min="-180" max="180" step="1" value="-45">
+            </label>
+            <label class="wide-slider">
+              <span>pitch</span>
+              <input id="surfacePitch" type="range" min="15" max="82" step="1" value="45">
+            </label>
+            <label class="wide-slider">
+              <span>roll</span>
+              <input id="surfaceRoll" type="range" min="-180" max="180" step="1" value="0">
+            </label>
+          </div>
+          <label class="toggle-row">
+            <input id="showGradientFlow" type="checkbox" checked>
+            <span>Show derivative / gradient flow</span>
+          </label>
+          <label class="wide-slider">
+            <span>density</span>
+            <input id="flowDensity" type="range" min="3" max="9" step="1" value="6">
+          </label>
+          <label class="wide-slider">
+            <span>speed</span>
+            <input id="flowSpeed" type="range" min="0.1" max="1.2" step="0.05" value="0.35">
+          </label>
+          <label class="wide-slider surface-view-controls">
+            <span>reach</span>
+            <input id="gradientReach" type="range" min="0.04" max="0.18" step="0.01" value="0.09">
+          </label>
+        </div>
+        <div class="learning-card">
+          <div class="section-heading compact-heading">
+            <h2>Derivative</h2>
+            <strong id="derivativeValue">0.000</strong>
+          </div>
+          <label class="wide-slider">
+            <span>x0</span>
+            <input id="derivativeX" type="range" min="-5" max="5" step="0.01" value="1">
+          </label>
+          <p class="formula-line" id="derivativeFormula">f'(x) = 2x</p>
+          <p class="formula-line" id="antiderivativeFormula">Integral f(x) dx = x^3 / 3 + C</p>
+          <p id="derivativeSummary">The tangent slope measures instantaneous change.</p>
+        </div>
+        <div class="learning-card">
+          <div class="section-heading compact-heading">
+            <h2>Integral</h2>
+            <strong id="integralValue">0.000</strong>
+          </div>
+          <div class="probe-inputs">
+            <label><span>from</span><input id="integralA" type="number" step="0.1" value="0"></label>
+            <label><span>to</span><input id="integralB" type="number" step="0.1" value="2"></label>
+          </div>
+          <p id="integralSummary">Signed area accumulates the function over an interval.</p>
+        </div>
+        <div class="learning-card">
+          <div class="section-heading compact-heading">
+            <h2>Surface & Gradient</h2>
+            <strong id="gradientValue">n/a</strong>
+          </div>
+          <p class="formula-line" id="tangentPlaneFormula">z = f(x0, y0) + fx(x - x0) + fy(y - y0)</p>
+          <p id="criticalSummary">Stationary and inflection diagnostics appear here.</p>
+        </div>
+        <div class="learning-card interpretation-card">
+          <div class="section-heading compact-heading">
+            <h2>Interpretation</h2>
+          </div>
+          <p id="calculusInterpretation">The derivative reads the instantaneous rate of change; the integral reads accumulated signed area.</p>
+        </div>
+      </section>
+
+      <section class="panel-section decomposition-section matrix-only">
+        <div class="section-heading">
+          <h2>Decomposition</h2>
+        </div>
+        <div class="decomp-card" id="decompSummary">
+          <span>Mode</span>
+          <strong>Transform</strong>
+          <p>Directly compare the source geometry with A applied to every point.</p>
+        </div>
+        <div class="metric-grid">
+          <article>
+            <span>U</span>
+            <strong id="uMatrix">[1 0; 0 1]</strong>
+          </article>
+          <article>
+            <span>Sigma</span>
+            <strong id="sigmaMatrix">[1 0; 0 1]</strong>
+          </article>
+          <article>
+            <span>V^T</span>
+            <strong id="vtMatrix">[1 0; 0 1]</strong>
+          </article>
+          <article>
+            <span>PDP^-1</span>
+            <strong id="pdpMatrix">available</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel-section matrix-only">
+        <div class="section-heading">
+          <h2>Animation</h2>
+          <output id="mixOutput">100%</output>
+        </div>
+        <label class="wide-slider">
+          <span>Interpolation</span>
+          <input id="mix" type="range" min="0" max="1" step="0.001" value="1">
+        </label>
+        <label class="wide-slider">
+          <span>Speed</span>
+          <input id="speed" type="range" min="0.25" max="3" step="0.05" value="1">
+        </label>
+      </section>
+
+      <section class="panel-section vector-section matrix-only">
+        <div class="section-heading">
+          <h2>Vector Probe</h2>
+        </div>
+        <div class="probe-inputs">
+          <label>
+            <span>x</span>
+            <input id="probeX" type="number" step="0.1" value="1">
+          </label>
+          <label>
+            <span>y</span>
+            <input id="probeY" type="number" step="0.1" value="1">
+          </label>
+        </div>
+        <p class="probe-result" id="probeResult">A[1, 1] = [1, 1]</p>
+      </section>
+    </aside>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
