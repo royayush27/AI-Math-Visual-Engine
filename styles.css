@@ -253,6 +253,13 @@ h1 {
   min-height: 610px;
 }
 
+.calculus-stage:not(.surface-stage) .legend {
+  top: 14px;
+  right: 14px;
+  bottom: auto;
+  left: auto;
+}
+
 .legend {
   position: absolute;
   left: 14px;

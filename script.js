@@ -1275,6 +1275,23 @@ function canvasPlotArea() {
   };
 }
 
+function calculusPlotArea() {
+  const rect = canvas.getBoundingClientRect();
+  const compact = rect.width < 560;
+  const left = compact ? 58 : 74;
+  const right = compact ? 24 : 28;
+  const top = compact ? 30 : 34;
+  const bottom = compact ? 82 : 80;
+  return {
+    left,
+    right: rect.width - right,
+    top,
+    bottom: rect.height - bottom,
+    width: rect.width - left - right,
+    height: rect.height - top - bottom,
+  };
+}
+
 function drawPlotAxes(area, xMin, xMax, yMax) {
   ctx.save();
   ctx.strokeStyle = colors.axis;
@@ -1323,6 +1340,7 @@ function drawFunctionAxes(area, xMin, xMax, yMin, yMax) {
   ctx.fillStyle = "#96a3b7";
   ctx.lineWidth = 1;
   ctx.font = "12px Space Mono, Consolas, monospace";
+  ctx.textBaseline = "middle";
 
   for (let i = 0; i <= 5; i += 1) {
     const x = xMin + (xMax - xMin) * (i / 5);
@@ -1331,9 +1349,13 @@ function drawFunctionAxes(area, xMin, xMax, yMin, yMax) {
     ctx.moveTo(sx, area.top);
     ctx.lineTo(sx, area.bottom);
     ctx.stroke();
-    ctx.fillText(format(x, 2), sx - 18, area.bottom + 22);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.fillText(format(x, 2), sx, area.bottom + 20);
   }
 
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
   for (let i = 0; i <= 4; i += 1) {
     const y = yMin + (yMax - yMin) * (i / 4);
     const sy = yToScreen(y);
@@ -1341,7 +1363,7 @@ function drawFunctionAxes(area, xMin, xMax, yMin, yMax) {
     ctx.moveTo(area.left, sy);
     ctx.lineTo(area.right, sy);
     ctx.stroke();
-    ctx.fillText(format(y, 2), 12, sy + 4);
+    ctx.fillText(format(y, 2), area.left - 12, sy);
   }
 
   ctx.strokeStyle = "rgba(190, 208, 230, 0.5)";
@@ -2464,7 +2486,7 @@ function drawSurfaceCalculus() {
   const center = (min + max) / 2;
   const sceneSpan = 5.9;
   const toScene = (value) => ((value - center) / range) * sceneSpan;
-  const area = canvasPlotArea();
+  const area = calculusPlotArea();
   const grid = 34;
   const samples = [];
   let zMin = Infinity;
@@ -2653,7 +2675,7 @@ function drawCalculus() {
   const rawMax = Number(document.querySelector("#calcMax").value);
   const min = Number.isFinite(rawMin) ? rawMin : -5;
   const max = Number.isFinite(rawMax) && rawMax > min ? rawMax : min + 10;
-  const area = canvasPlotArea();
+  const area = calculusPlotArea();
   const samples = [];
   const derivativeSamples = [];
   for (let i = 0; i <= 360; i += 1) {
@@ -2674,6 +2696,9 @@ function drawCalculus() {
 
   drawFunctionAxes(area, min, max, low, high);
   ctx.save();
+  ctx.beginPath();
+  ctx.rect(area.left, area.top, area.width, area.height);
+  ctx.clip();
 
   const a = Number(document.querySelector("#integralA").value);
   const b = Number(document.querySelector("#integralB").value);
@@ -2751,6 +2776,8 @@ function drawCalculus() {
   document.querySelector("#integralSummary").textContent = `Integral from ${format(from, 2)} to ${format(to, 2)} is signed area.`;
   document.querySelector("#calculusInterpretation").textContent = `The graph is ${direction} at x = ${format(x0, 2)}. The shaded region is accumulated signed area over the selected interval.`;
   document.querySelector("#classification").textContent = `Calculus visualizer for f(x) = ${expression}`;
+  ctx.restore();
+  ctx.save();
   ctx.fillStyle = "#f6fbff";
   ctx.font = "700 15px Inter, system-ui, sans-serif";
   ctx.fillText(`f(x) = ${expression}`, area.left, area.top - 8);
