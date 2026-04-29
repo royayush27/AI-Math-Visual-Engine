@@ -1,6 +1,6 @@
 <div align="center">
 
-<h1>Math Visual Engine</h1>
+<h1> AI/ML Math Visual Engine</h1>
 
 <p><strong>An interactive browser lab for linear algebra, calculus, probability, and statistical geometry.</strong></p>
 
